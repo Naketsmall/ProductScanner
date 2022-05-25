@@ -9,12 +9,12 @@ class Dense(ABC):
         self.n = out_n
         # self.W = np.random.rand(out_n, in_n)
         # self.b = np.random.rand(out_n, 1)
-        self.W = np.zeros((out_n, in_n))
-        self.b = np.zeros((out_n, 1))
+        self.W = np.random.rand(out_n, in_n)
+        self.b = np.random.rand(out_n, 1)
 
-        print(self.W)
-        print(self.b)
-        print()
+        # print(self.W)
+        # print(self.b)
+        # print()
 
     @abstractmethod
     def activate(self, t):
@@ -23,15 +23,17 @@ class Dense(ABC):
     def fit(self, dh, in_x, alpha):
         print(type(self))
         print('Fit --- dh:', dh)
-        print('Fit --- deriv:', self.deriv(self.W @ in_x + self.b))
+        # print('Fit --- deriv:', self.deriv(self.W @ in_x + self.b))
         dt = dh * self.deriv(self.W @ in_x + self.b)
-        dW = dt @ in_x
+        print('Fit --- dt:', dt)
+        print('Fit --- in_x:', in_x)
+        dW = dt @ np.array(in_x).T
         db = np.sum(dt, axis=1, keepdims=1)
         d_in_x = self.W.T @ dt
         # print('Fit --- alpha:', alpha)
-        # print('Fit --- dW:', dW)
+        print('Fit --- dW:', dW)
         # print('Fit --- W:', self.W)
-        # print('Fit --- db:', db)
+        print('Fit --- db:', db)
         # print('Fit --- b:', self.b)
         # print('Fit --- d_in_x:', d_in_x)
         # print()
@@ -90,20 +92,14 @@ class Neiro():
             y_full[j, yj] = 1
         return y_full.T
 
-    def fit(self, X, y, alpha: int):
-
+    def back_prop(self, X, y, alpha: int):
         inter_h = [X]
         x = X
         for layer in self.layers:
             x = layer.do(x)
             inter_h.append(x)
-            # print('X: ', x)
-
-        print('len inter_h', len(inter_h))
-        # print(len(self.layers))
 
         y_full = self.to_full_batch(y, self.layers[-1].n)
         dh = x - y_full
         for i in range(len(inter_h) - 1, 0, -1):
-            print(i)
             dh = self.layers[i-1].fit(dh, inter_h[i-1], alpha)
