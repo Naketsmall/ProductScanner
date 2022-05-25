@@ -1,3 +1,4 @@
+import random
 from abc import abstractmethod, ABC
 import numpy as np
 from typing import List
@@ -21,19 +22,19 @@ class Dense(ABC):
         pass
 
     def fit(self, dh, in_x, alpha):
-        print(type(self))
-        print('Fit --- dh:', dh)
+        #print(type(self))
+        #print('Fit --- dh:', dh)
         # print('Fit --- deriv:', self.deriv(self.W @ in_x + self.b))
         dt = dh * self.deriv(self.W @ in_x + self.b)
-        print('Fit --- dt:', dt)
-        print('Fit --- in_x:', in_x)
+        #print('Fit --- dt:', dt)
+        #print('Fit --- in_x:', in_x)
         dW = dt @ np.array(in_x).T
         db = np.sum(dt, axis=1, keepdims=1)
         d_in_x = self.W.T @ dt
         # print('Fit --- alpha:', alpha)
-        print('Fit --- dW:', dW)
+        #print('Fit --- dW:', dW)
         # print('Fit --- W:', self.W)
-        print('Fit --- db:', db)
+        #print('Fit --- db:', db)
         # print('Fit --- b:', self.b)
         # print('Fit --- d_in_x:', d_in_x)
         # print()
@@ -57,8 +58,6 @@ class D_relu(Dense):
 
     def activate(self, t):
         return np.maximum(t, 0)
-
-
 
 
 class D_softmax(Dense):
@@ -103,3 +102,15 @@ class Neiro():
         dh = x - y_full
         for i in range(len(inter_h) - 1, 0, -1):
             dh = self.layers[i-1].fit(dh, inter_h[i-1], alpha)
+
+
+    def fit(self, X, y, epochs, batch_size, alpha):
+        for epoch in range(epochs):
+            DS = np.concatenate((X, [y]), axis=0).T
+            random.shuffle(DS)
+            print('DS len, batch size', len(DS), batch_size)
+            for i in range(len(DS) // batch_size):
+                batch = DS[i*batch_size : i * batch_size + batch_size]
+                bX, by = batch[0][:-1].T, [batch[0][-1]]
+                print("-----BATCHES-----\n", bX, by)
+                self.back_prop(bX, by, alpha)
