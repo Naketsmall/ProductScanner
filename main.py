@@ -1,22 +1,48 @@
+from neiro import Neiro, D_relu, D_softmax
+import sklearn.datasets
 import numpy as np
-from neiro import D_relu, D_softmax, Neiro
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
-l1 = D_relu(3, 3)
-l2 = D_softmax(3, 5)
-N = Neiro([l1, l2])
+N = Neiro([D_relu(64, 16), D_softmax(16, 10)])
 
-x1 = [[1, 2, 3, 3],
-      [2, 3, 4, 5],
-      [6, 3, 2, 1]]
+df = sklearn.datasets.load_digits()
+X_train, X_test, y_train, y_test = train_test_split(
+    df['data'], df['target'], test_size=0.3, shuffle=False
+)
 
-y1 = [0, 3, 4, 4]
+N.fit(X_train, np.array([y_train]).T, 10000, 50, 0.0003)
+
+q = 0
+A = {}
+for i in range(len(X_test)):
+    if not np.argmax(N.predict(X_test[i])) == y_test[i]:
+        q += 1
+        if (np.argmax(N.predict(X_test[i])), y_test[i]) in A.keys():
+            A[(np.argmax(N.predict(X_test[i])), y_test[i])] += 1
+        else:
+            A[(np.argmax(N.predict(X_test[i])), y_test[i])] = 1
+
+for i in list(sorted(A.keys())):
+    print('values:', i, 'mistakes:', A[i])
+print('Common: ', q, '/', len(X_test), '(', q * 100 / len(X_test), '%)')
+
+for i in range(5):
+    plt.imshow(X_test[i].reshape((8, 8)))
+    print('ref / pred:', y_test[i], np.argmax(N.predict(X_test[i])))
+    plt.show()
 
 
-for i in range(1100):
-    N.fit(x1, y1, 10, 2, 0.03)
-
-print(N.predict(x1))
-
-print(N.predict([[1], [2], [6]]))
-
+#
+# 278 (10000, 200, 0.0003)  80%
+# 250 (10000, 200, 0.0003)  80%
+# 272 (10000, 200, 0.0003)  80%
+# 212 (10000, 100, 0.0003)  80%
+# 181 (10000, 50,  0.0003)  80%
+# 192 (10000, 25,  0.0003)  80%
+# 193 (20000, 50,  0.0003)  80%
+# 202 (20000, 50,  0.00015) 80%
+# 9.4 (10000, 50,  0.0003)  80%  Какой негодяй придумал указывать процент тестовой, а не тренировочной выборки..
+# 8.5 (10000, 50,  0.0003)  30%
+# 10.5(10000б 100б 0.0003)  30% (added extra ReLu)
 
