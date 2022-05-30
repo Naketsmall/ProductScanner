@@ -44,13 +44,23 @@ class D_relu(Dense):
         return (h >= 0).astype(float)
 
 
-class D_sigm(Dense):
+class D_leaky_relu(Dense):
 
     def activate(self, t):
-        return np.divide(np.ones(t.shape), (np.ones(t.shape) + np.exp(-t)))
+        return np.maximum(t, 0.1 * t)
 
     def deriv(self, h):
-        return 1
+        return 1 if h >= 0 else 0.1
+
+
+class D_ELU(Dense):
+
+    def __init__(self, in_n, out_n, alpha):
+        super().__init__(in_n, out_n)
+        self.alpha = alpha
+
+    def activate(self, t):
+        return self.alpha * (np.exp(t) - 1) if t < 0 else t
 
 
 class D_softmax(Dense):
@@ -63,7 +73,25 @@ class D_softmax(Dense):
         return 1
 
 
-class Neiro():
+class D_sigm(Dense):
+
+    def activate(self, t):
+        return np.divide(np.ones(t.shape), (np.ones(t.shape) + np.exp(-t)))
+
+    def deriv(self, h):
+        return self.activate(h) * (1 - self.activate(h))
+
+
+class D_tanh(Dense):
+
+    def activate(self, t):
+        return np.tanh(t)
+
+    def deriv(self, h):
+        return 1 / np.power(np.cosh(h), 2)
+
+
+class Neiro:
 
     def __init__(self, layers: List[Dense]):
         self.layers = layers
@@ -74,12 +102,8 @@ class Neiro():
         return x
 
     @staticmethod
-    def sparse_cross_entropy_batch(z, y):
-        return -np.log(np.array([z[j, y[j]] for j in range(len(y))]))
-
-    @staticmethod
-    def to_full_batch(y, num_out_neurons):
-        y_full = np.zeros((len(y), num_out_neurons))
+    def __to_full_batch(y, num_out):
+        y_full = np.zeros((len(y), num_out))
         for j, yj in enumerate(y):
             y_full[j, int(yj)] = 1
         return y_full
@@ -89,10 +113,9 @@ class Neiro():
         x = X
         for layer in self.layers:
             x = layer.do(x)
-
             inter_h.append(x)
 
-        y_full = self.to_full_batch(y, self.layers[-1].n)
+        y_full = self.__to_full_batch(y, self.layers[-1].n)
         dh = x - y_full
 
         for i in range(len(inter_h) - 1, 0, -1):
@@ -111,9 +134,7 @@ class Neiro():
         with open(file_path, "wb") as outfile:
             pickle.dump(self, outfile)
 
-
     def load_pickle(self, file_path):
         with open(file_path, "rb") as infile:
             n = pickle.load(infile)
             self.layers = n.layers.copy()
-
