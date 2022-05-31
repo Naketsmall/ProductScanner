@@ -35,6 +35,7 @@ class Dense(ABC):
         return self.activate(inp @ self.W + self.b)
 
 
+
 class D_relu(Dense):
 
     def activate(self, t):
@@ -108,6 +109,7 @@ class Neiro:
             y_full[j, int(yj)] = 1
         return y_full
 
+
     def back_prop(self, X, y, alpha: int):
         inter_h = [X]
         x = X
@@ -117,6 +119,8 @@ class Neiro:
 
         y_full = self.__to_full_batch(y, self.layers[-1].n)
         dh = x - y_full
+
+        print(mse(x, *y.T))
 
         for i in range(len(inter_h) - 1, 0, -1):
             dh = self.layers[i - 1].fit(dh, inter_h[i - 1], alpha)
@@ -138,3 +142,13 @@ class Neiro:
         with open(file_path, "rb") as infile:
             n = pickle.load(infile)
             self.layers = n.layers.copy()
+
+
+
+
+def cross_entropy(z, y):
+    return np.sum(-np.log(np.array([z[j, int(y[j])] for j in range(len(y))])))
+
+
+def mse(z, y):
+    return np.mean(np.power(1 - np.array([z[j, int(y[j])] for j in range(len(y))]), 1/2))
