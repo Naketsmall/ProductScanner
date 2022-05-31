@@ -145,7 +145,6 @@ class Neiro:
 
 
 
-
 def cross_entropy(z, y):
     return np.sum(-np.log(np.array([z[j, int(y[j])] for j in range(len(y))])))
 

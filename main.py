@@ -33,6 +33,7 @@ for i in range(5):
     print('ref / pred:', y_test[i], np.argmax(N.predict(X_test[i])))
     plt.show()
 
+
 #N.save_pickle('neiro83.pickle')
 #
 # 278 (10000, 200, 0.0003)  80%
