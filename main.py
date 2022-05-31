@@ -1,16 +1,16 @@
-from neiro import Neiro, D_relu, D_softmax, D_sigm
+from neiro import Neiro, D_ReLU, D_Softmax, D_sigm
 import sklearn.datasets
 import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-N = Neiro([D_relu(64, 16), D_softmax(16, 10)])
+N = Neiro([D_ReLU(64, 16), D_Softmax(16, 10)])
 
 df = sklearn.datasets.load_digits()
 X_train, X_test, y_train, y_test = train_test_split(
     df['data'], df['target'], test_size=0.3, shuffle=False
 )
-
+print(1)
 N.fit(X_train, np.array([y_train]).T, 1000, 50, 0.0003)
 #N.load_pickle('neiro83.pickle')
 
@@ -44,7 +44,7 @@ for i in range(5):
 # 192 (10000, 25,  0.0003)  80%
 # 193 (20000, 50,  0.0003)  80%
 # 202 (20000, 50,  0.00015) 80%
-# 9.4 (10000, 50,  0.0003)  80%  Какой негодяй придумал указывать процент тестовой, а не тренировочной выборки..
+# 9.4 (10000, 50,  0.0003)  80%  Какой негодяй придумал указывать процент тестовой а не тренировочной выборки..
 # 8.5 (10000, 50,  0.0003)  30%
 # 10.5(10000, 100, 0.0003)  30% (added extra ReLu)
 # 9.25(10000, 50,  0.0003)  30% (sigm)

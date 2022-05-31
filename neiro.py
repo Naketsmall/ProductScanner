@@ -35,8 +35,7 @@ class Dense(ABC):
         return self.activate(inp @ self.W + self.b)
 
 
-
-class D_relu(Dense):
+class D_ReLU(Dense):
 
     def activate(self, t):
         return np.maximum(t, 0)
@@ -45,7 +44,7 @@ class D_relu(Dense):
         return (h >= 0).astype(float)
 
 
-class D_leaky_relu(Dense):
+class D_Leaky_ReLU(Dense):
 
     def activate(self, t):
         return np.maximum(t, 0.1 * t)
@@ -63,8 +62,11 @@ class D_ELU(Dense):
     def activate(self, t):
         return self.alpha * (np.exp(t) - 1) if t < 0 else t
 
+    def deriv(self, h):
+        return 1 if h >= 0 else self.alpha * np.exp(h)
 
-class D_softmax(Dense):
+
+class D_Softmax(Dense):
 
     def activate(self, t):
         out = np.exp(t)
@@ -102,6 +104,7 @@ class Neiro:
             x = layer.do(x)
         return x
 
+    # TODO format y
     @staticmethod
     def __to_full_batch(y, num_out):
         y_full = np.zeros((len(y), num_out))
@@ -109,7 +112,7 @@ class Neiro:
             y_full[j, int(yj)] = 1
         return y_full
 
-
+    # TODO refactor back_prop to format y: (key, val)
     def back_prop(self, X, y, alpha: int):
         inter_h = [X]
         x = X
@@ -120,11 +123,10 @@ class Neiro:
         y_full = self.__to_full_batch(y, self.layers[-1].n)
         dh = x - y_full
 
-        print(mse(x, *y.T))
-
         for i in range(len(inter_h) - 1, 0, -1):
             dh = self.layers[i - 1].fit(dh, inter_h[i - 1], alpha)
 
+    # TODO refactor fit
     def fit(self, X, y, epochs, batch_size, alpha):
         for epoch in range(epochs):
             DS = np.concatenate((X, y), axis=1)
@@ -144,10 +146,11 @@ class Neiro:
             self.layers = n.layers.copy()
 
 
-
+# TODO refactor cross-entropy, mse
 def cross_entropy(z, y):
-    return np.sum(-np.log(np.array([z[j, int(y[j])] for j in range(len(y))])))
+    return -np.sum(np.log(np.array([z[j, int(y[j])] for j in range(len(y))])))
+    # return - np.sum([y[j] * np.log(z[j, int(y[j])]) + (1-y[j]) for j in range(len(y))])
 
 
 def mse(z, y):
-    return np.mean(np.power(1 - np.array([z[j, int(y[j])] for j in range(len(y))]), 1/2))
+    return np.power(np.mean(1 - np.array([z[j, int(y[j])] for j in range(len(y))])), 1 / 2)
