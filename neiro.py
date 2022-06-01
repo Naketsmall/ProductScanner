@@ -162,7 +162,7 @@ def serialize(tosd):
     if type(tosd) == type(Neiro([])):
         return '{"type":"' + str(type(tosd)) \
                + '","layers":' + str([serialize(i) for i in tosd.layers]) + '}'
-    if '.D_' in str(type(tosd)):
+    else:
         return '{ "type":"' + str(type(tosd)) + \
            '","n":' + str(tosd.n) + \
            ',"W":' + str([list(i) for i in tosd.W]) + \
@@ -170,10 +170,10 @@ def serialize(tosd):
            ',"alpha":' + str(tosd.alpha) + '}'
 
 
-def deserialize_dense(serialized):
+def deserialize(serialized):
     unserd = json.loads(serialized)
-    if unserd['type'] == str(type(Neiro())):
-        layers = [deserialize_dense(i) for i in unserd['layers']]
+    if unserd['type'] == str(type(Neiro([]))):
+        layers = [deserialize(i) for i in unserd['layers']]
         return Neiro(layers)
     else:
         W = np.array(unserd['W'])
