@@ -158,45 +158,43 @@ def mse(z, y):
     return np.power(np.mean(1 - np.array([z[j, int(y[j])] for j in range(len(y))])), 1 / 2)
 
 
-def serialize_dense(dense):
-    return '{ "type":"' + str(type(dense)) + \
-           '","n":' + str(dense.n) + \
-           ',"W":' + str([list(i) for i in dense.W]) + \
-           ',"b":' + str([list(i) for i in dense.b]) + \
-           ',"alpha":' + str(dense.alpha) + '}'
+def serialize(tosd):
+    if type(tosd) == type(Neiro([])):
+        return '{"type":"' + str(type(tosd)) \
+               + '","layers":' + str([serialize(i) for i in tosd.layers]) + '}'
+    if '.D_' in str(type(tosd)):
+        return '{ "type":"' + str(type(tosd)) + \
+           '","n":' + str(tosd.n) + \
+           ',"W":' + str([list(i) for i in tosd.W]) + \
+           ',"b":' + str([list(i) for i in tosd.b]) + \
+           ',"alpha":' + str(tosd.alpha) + '}'
 
 
 def deserialize_dense(serialized):
     unserd = json.loads(serialized)
-    W = np.array(unserd['W'])
-    b = np.array(unserd['b'])
-    out_n = unserd['n']
-    in_n = len(W[0])
-    alpha = unserd['alpha']
+    if unserd['type'] == str(type(Neiro())):
+        layers = [deserialize_dense(i) for i in unserd['layers']]
+        return Neiro(layers)
+    else:
+        W = np.array(unserd['W'])
+        b = np.array(unserd['b'])
+        out_n = unserd['n']
+        in_n = len(W[0])
+        alpha = unserd['alpha']
 
-    if unserd['type'] == "<class 'neiro.D_ReLU'>":
-        D = D_ReLU(in_n, out_n)
-    elif unserd['type'] == "<class 'neiro.D_ELU'>":
-        D = D_ELU(in_n, out_n, alpha)
-    elif unserd['type'] == "<class 'neiro.D_sigm'>":
-        D = D_sigm(in_n, out_n)
-    elif unserd['type'] == "<class 'neiro.D_tanh'>":
-        D = D_tanh(in_n, out_n)
-    elif unserd['type'] == "<class 'neiro.D_Softmax'>":
-        D = D_Softmax(in_n, out_n)
+        if unserd['type'] == "<class 'neiro.D_ReLU'>":
+            D = D_ReLU(in_n, out_n)
+        elif unserd['type'] == "<class 'neiro.D_ELU'>":
+            D = D_ELU(in_n, out_n, alpha)
+        elif unserd['type'] == "<class 'neiro.D_sigm'>":
+            D = D_sigm(in_n, out_n)
+        elif unserd['type'] == "<class 'neiro.D_tanh'>":
+            D = D_tanh(in_n, out_n)
+        elif unserd['type'] == "<class 'neiro.D_Softmax'>":
+            D = D_Softmax(in_n, out_n)
 
-    D.W = W
-    D.b = b
+        D.W = W
+        D.b = b
 
     return D
 
-
-def serialize_neiro(neir):
-    return '{"type":"' + str(type(neir)) \
-           + '","layers":' + str([serialize_dense(i) for i in neir.layers]) + '}'
-
-
-def deserialize_neiro(serialized):
-    unserd = json.loads(serialized)
-    layers = [deserialize_dense(i) for i in unserd['layers']]
-    return Neiro(layers)
