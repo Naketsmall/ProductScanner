@@ -10,9 +10,8 @@ df = sklearn.datasets.load_digits()
 X_train, X_test, y_train, y_test = train_test_split(
     df['data'], df['target'], test_size=0.3, shuffle=False
 )
-print(1)
 N.fit(X_train, np.array([y_train]).T, 1000, 50, 0.0003)
-#N.load_pickle('neiro83.pickle')
+N.load_pickle('neiro83.pickle')
 
 q = 0
 A = {}

@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 import numpy as np
 from typing import List
 import pickle
+import json
 
 
 class Dense(ABC):
@@ -11,6 +12,7 @@ class Dense(ABC):
         self.n = out_n
         self.W = np.array(np.random.rand(in_n, out_n), dtype=np.longdouble) / 100
         self.b = np.array(np.random.rand(1, out_n), dtype=np.longdouble) / 100
+        self.alpha = 0
 
     @abstractmethod
     def activate(self, t):
@@ -154,3 +156,47 @@ def cross_entropy(z, y):
 
 def mse(z, y):
     return np.power(np.mean(1 - np.array([z[j, int(y[j])] for j in range(len(y))])), 1 / 2)
+
+
+def serialize_dense(dense):
+    return '{ "type":"' + str(type(dense)) + \
+           '","n":' + str(dense.n) + \
+           ',"W":' + str([list(i) for i in dense.W]) + \
+           ',"b":' + str([list(i) for i in dense.b]) + \
+           ',"alpha":' + str(dense.alpha) + '}'
+
+
+def deserialize_dense(serialized):
+    unserd = json.loads(serialized)
+    W = np.array(unserd['W'])
+    b = np.array(unserd['b'])
+    out_n = unserd['n']
+    in_n = len(W[0])
+    alpha = unserd['alpha']
+
+    if unserd['type'] == "<class 'neiro.D_ReLU'>":
+        D = D_ReLU(in_n, out_n)
+    elif unserd['type'] == "<class 'neiro.D_ELU'>":
+        D = D_ELU(in_n, out_n, alpha)
+    elif unserd['type'] == "<class 'neiro.D_sigm'>":
+        D = D_sigm(in_n, out_n)
+    elif unserd['type'] == "<class 'neiro.D_tanh'>":
+        D = D_tanh(in_n, out_n)
+    elif unserd['type'] == "<class 'neiro.D_Softmax'>":
+        D = D_Softmax(in_n, out_n)
+
+    D.W = W
+    D.b = b
+
+    return D
+
+
+def serialize_neiro(neir):
+    return '{"type":"' + str(type(neir)) \
+           + '","layers":' + str([serialize_dense(i) for i in neir.layers]) + '}'
+
+
+def deserialize_neiro(serialized):
+    unserd = json.loads(serialized)
+    layers = [deserialize_dense(i) for i in unserd['layers']]
+    return Neiro(layers)
